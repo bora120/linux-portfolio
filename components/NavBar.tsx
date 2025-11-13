@@ -1,32 +1,53 @@
-// components/NavBar.tsx
+// components/Navbar.tsx
+'use client'
+
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const navItems = [
   { href: '/', label: 'Home' },
-  { href: '/about', label: '소개' },
-  { href: '/projects', label: '프로젝트 내용' },
-  { href: '/roadmap', label: '발전 계획' },
+  { href: '/about', label: '내 소개' },
+  { href: '/project', label: '프로젝트 내용' },
+  { href: '/plan', label: '발전 계획' },
+  { href: '/security', label: '보안 · 로그 요약' },
 ]
 
-export default function NavBar() {
+export default function Navbar() {
+  const pathname = usePathname()
+
   return (
-    <header className="sticky top-0 z-20 border-b border-pink-500/20 bg-slate-950/90 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 md:px-6 lg:px-8 py-3 md:py-4">
-        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-pink-200 md:text-sm">
-          Linux · Web · Security
-        </span>
-        <nav className="flex items-center gap-2 md:gap-3 text-[0.75rem] md:text-sm">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-full px-3 py-1 text-slate-200/90 transition hover:bg-pink-600/20 hover:text-pink-200"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </div>
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md">
+      <nav className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+        {/* 로고/타이틀 */}
+        <div className="font-semibold text-lg bg-gradient-to-r from-pink-500 via-purple-500 to-sky-500 bg-clip-text text-transparent">
+          Linux · Security · Portfolio
+        </div>
+
+        {/* 메뉴 */}
+        <ul className="flex gap-3 text-xs sm:text-sm md:text-base">
+          {navItems.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== '/' && pathname.startsWith(item.href))
+
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={[
+                    'px-3 py-1.5 rounded-full transition-colors duration-150 border text-xs sm:text-sm',
+                    isActive
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white border-pink-400 shadow-sm'
+                      : 'border-transparent text-slate-700 hover:text-purple-700 hover:bg-slate-100 hover:border-pink-200',
+                  ].join(' ')}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
     </header>
   )
 }

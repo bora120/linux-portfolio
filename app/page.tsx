@@ -43,10 +43,10 @@ export default function HomePage() {
             프로젝트 내용 보기
           </Link>
           <Link
-            href="/plan"
+            href="/security"
             className="px-7 py-2.5 rounded-full border border-purple-300 bg-purple-50 text-sm sm:text-base text-purple-700 hover:bg-purple-100 transition"
           >
-            발전 계획 살펴보기
+            보안 · 로그 요약 보기
           </Link>
         </div>
       </div>

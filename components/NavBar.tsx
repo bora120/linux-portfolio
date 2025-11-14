@@ -8,8 +8,8 @@ const navItems = [
   { href: '/', label: 'Home' },
   { href: '/about', label: '내 소개' },
   { href: '/project', label: '프로젝트 내용' },
-  { href: '/plan', label: '발전 계획' },
   { href: '/security', label: '보안 · 로그 요약' },
+  { href: '/plan', label: '발전 계획' },
 ]
 
 export default function Navbar() {

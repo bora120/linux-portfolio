@@ -1,4 +1,10 @@
 // app/security/page.tsx
+'use client'
+
+import Link from 'next/link'
+import Image from 'next/image'
+import { useState } from 'react'
+
 type SecurityBlock = {
   title: string
   color: 'pink' | 'sky' | 'purple' | 'slate'
@@ -6,50 +12,103 @@ type SecurityBlock = {
   points: string[]
 }
 
+type ProofImage = {
+  src: string
+  alt: string
+  caption: string
+}
+
 const securityBlocks: SecurityBlock[] = [
   {
-    title: '방화벽(UFW) 정책',
+    title: 'access.log 기반 트래픽 분석',
     color: 'pink',
     description:
-      'UFW를 사용하여 필요한 포트만 허용하고, 나머지 트래픽은 기본적으로 차단하는 정책을 사용합니다.',
+      'Nginx access.log를 기준으로 어떤 IP가 언제, 어떤 요청을 보냈는지 파악한다.',
     points: [
-      '기본 정책 : 외부에서 들어오는 연결 차단',
-      '허용 포트 : SSH, HTTP, HTTPS 등 최소한의 서비스만 허용',
-      '규칙 관리 : 서비스 변경 시 방화벽 규칙 함께 점검',
+      'IP · 시간 · 메서드 · URL · 상태 코드 등 주요 정보 확인',
+      '404 다발, 반복 요청, 이상한 URL 등 공격 패턴 탐지에 활용',
     ],
   },
   {
-    title: 'SSH 및 계정 보안',
+    title: 'Python 로그 분석 스크립트',
     color: 'sky',
     description:
-      '원격 접속에 사용되는 SSH와 계정 관리를 통해 서버 접근 경로를 안전하게 관리합니다.',
+      'access.log를 읽어 통계를 만들고, IDS와 그래프 생성에 사용하는 스크립트이다.',
     points: [
-      'SSH 포트 변경 및 root 로그인 제한',
-      '키 기반 인증 사용 권장',
-      '불필요 계정/서비스 비활성화',
+      'log_analyzer.py: 최근 5분 상위 IP / 404 다발 IP 출력',
+      'log_graphs.py · plot_top_ips.py: Top IP, 상태 코드, 시간대별 요청 시각화',
     ],
   },
   {
-    title: '로그 수집 및 모니터링',
+    title: '자동 차단 IDS 흐름',
     color: 'purple',
     description:
-      'Nginx 액세스/에러 로그와 시스템 로그를 활용하여 이상 징후를 확인할 수 있는 기반을 마련합니다.',
+      '비정상 트래픽을 자동으로 차단하기 위해 UFW 규칙을 자동 추가하는 IDS를 구성했다.',
     points: [
-      '로그 위치 및 형식 파악',
-      '필터링/검색 명령어 정리 (grep, tail 등)',
-      '비정상 패턴(반복 요청, 에러 폭주 등) 확인',
+      'block_bad_ips.py: 임계값 초과 IP를 ufw deny로 자동 등록',
+      '탐지 → 차단까지 로그 기반 자동 대응 구조를 만든다.',
     ],
   },
   {
-    title: '간단 IDS 구상',
+    title: 'Crontab 주기 실행',
     color: 'slate',
     description:
-      '로그 데이터를 토대로, 특정 기준을 넘는 트래픽이나 의심스러운 패턴을 탐지하는 간단한 IDS 형태를 구상합니다.',
+      'IDS 스크립트를 5분마다 실행해 실시간에 가까운 감시가 가능하도록 구성했다.',
     points: [
-      'IP별 요청 횟수 집계',
-      '특정 URL로의 과도한 접근 탐지',
-      '기준 이상일 때 알림 또는 차단 규칙 설계',
+      '*/5 * * * * python3 log_analyzer.py / block_bad_ips.py',
+      '주기 실행 결과는 ids.log 등으로 남겨 추적할 수 있다.',
     ],
+  },
+]
+
+const proofGraphs: ProofImage[] = [
+  {
+    src: '/security/requests_by_hour.png',
+    alt: '시간대별 요청 수 그래프',
+    caption: '최근 24시간 기준 시간대별 요청 수 변화이다.',
+  },
+  {
+    src: '/security/status_codes.png',
+    alt: 'HTTP 상태 코드 분포 그래프',
+    caption: '200, 404 등 주요 상태 코드 비율을 보여준다.',
+  },
+  {
+    src: '/security/top_ips.png',
+    alt: 'Top IP 요청 수 그래프',
+    caption: '요청 수가 많은 상위 IP를 한눈에 확인할 수 있다.',
+  },
+]
+
+const proofServer: ProofImage[] = [
+  {
+    src: '/security/https_ports.png',
+    alt: 'Nginx 80/443 포트 리스닝 상태',
+    caption: '80, 443 포트에서 Nginx가 리스닝 중인 것을 확인한 화면이다.',
+  },
+  {
+    src: '/security/ssh_2222.png',
+    alt: 'SSH 2222 포트 리스닝 및 접속',
+    caption: 'SSH 포트를 2222로 변경하고 접속이 가능한지 확인했다.',
+  },
+  {
+    src: '/security/ufw_status.png',
+    alt: 'UFW 방화벽 정책 상태',
+    caption: '필수 포트만 허용하고 나머지는 차단하는 정책을 적용한 상태이다.',
+  },
+  {
+    src: '/security/log_analyzer.png',
+    alt: 'log_analyzer.py 실행 결과',
+    caption: '상위 IP와 404 다발 IP를 출력하는 분석 스크립트 실행 결과이다.',
+  },
+  {
+    src: '/security/block_bad_ips.png',
+    alt: 'block_bad_ips.py 실행 결과',
+    caption: '임계값 이상 요청한 IP를 자동으로 차단한 결과이다.',
+  },
+  {
+    src: '/security/cron_ids.png',
+    alt: 'IDS 크론탭 자동 실행 설정',
+    caption: '5분마다 IDS 스크립트를 실행하도록 설정한 crontab이다.',
   },
 ]
 
@@ -67,6 +126,37 @@ function blockClasses(color: SecurityBlock['color']) {
   }
 }
 
+function SecurityBlockCard({ block }: { block: SecurityBlock }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div
+      className={`rounded-2xl border shadow-sm p-5 space-y-3 ${blockClasses(
+        block.color
+      )}`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-slate-900">{block.title}</h2>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="text-[11px] text-slate-500 hover:text-slate-700"
+        >
+          {open ? '상세 접기' : '상세 보기'}
+        </button>
+      </div>
+      <p className="text-sm text-slate-700">{block.description}</p>
+      {open && (
+        <ul className="text-xs text-slate-600 space-y-1">
+          {block.points.map((p) => (
+            <li key={p}>· {p}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export default function SecurityPage() {
   return (
     <section className="space-y-10">
@@ -81,32 +171,112 @@ export default function SecurityPage() {
           보안 · 로그 요약
         </h1>
         <p className="text-sm sm:text-base text-slate-700">
-          이 프로젝트에서 적용한 보안 설정과 로그 분석 방향을 한눈에 볼 수
-          있도록 정리한 페이지입니다. 실제 서버 설정에 맞게 내용을 수정해
-          사용하면 됩니다.
+          Nginx 로그 분석, IDS 구성, 자동 차단, 24시간 트래픽 그래프 등 보안
+          중심 결과를 모아놓은 페이지이다. 프로젝트 내용에서 설명한 구현을 실제
+          로그와 캡처로 증명한다.
         </p>
       </div>
 
-      {/* 보안/로그 블록들 */}
+      {/* 보안/로그 블록 + 상세보기 토글 */}
       <div className="grid md:grid-cols-2 gap-6">
         {securityBlocks.map((block) => (
-          <div
-            key={block.title}
-            className={`rounded-2xl border shadow-sm p-5 space-y-3 ${blockClasses(
-              block.color
-            )}`}
-          >
-            <h2 className="text-sm font-semibold text-slate-900">
-              {block.title}
-            </h2>
-            <p className="text-sm text-slate-700">{block.description}</p>
-            <ul className="text-xs text-slate-600 space-y-1">
-              {block.points.map((p) => (
-                <li key={p}>· {p}</li>
-              ))}
-            </ul>
-          </div>
+          <SecurityBlockCard key={block.title} block={block} />
         ))}
+      </div>
+
+      {/* 24시간 로그 기반 그래프들 (작게, 한눈에) */}
+      <div className="space-y-4 max-w-4xl mx-auto">
+        <h2 className="text-sm font-semibold text-purple-700">로그 시각화</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          {proofGraphs.map((img) => (
+            <div
+              key={img.src}
+              className="space-y-2 rounded-xl bg-slate-50 border border-slate-100 p-2"
+            >
+              <div className="relative w-full aspect-[4/3]">
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="(min-width: 768px) 30vw, 100vw"
+                  className="rounded-lg object-contain"
+                />
+              </div>
+              <p className="text-[11px] text-slate-600">{img.caption}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-[11px] text-slate-500">
+          ※ Ubuntu에서 Python(matplotlib) 스크립트를 실행해 생성한 PNG를
+          /public/security/에 저장한 뒤 불러오는 그래프이다.
+        </p>
+      </div>
+
+      {/* 서버 보안 설정 및 IDS 동작 캡처 */}
+      <div className="space-y-4 max-w-4xl mx-auto">
+        <h2 className="text-sm font-semibold text-sky-700">
+          서버 보안 설정 · IDS 동작 캡처
+        </h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          {proofServer.map((img) => (
+            <div
+              key={img.src}
+              className="space-y-2 rounded-xl bg-slate-50 border border-slate-100 p-2"
+            >
+              <div className="relative w-full aspect-[4/3]">
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="(min-width: 768px) 30vw, 100vw"
+                  className="rounded-lg object-contain"
+                />
+              </div>
+              <p className="text-[11px] text-slate-600">{img.caption}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-[11px] text-slate-500">
+          ※ Nginx 포트 리스닝 상태, SSH 포트 변경, UFW 정책, IDS 실행 결과, cron
+          설정을 실제 Ubuntu 터미널에서 캡처한 이미지이다.
+        </p>
+      </div>
+
+      {/* 확인용 링크 */}
+      <div className="max-w-3xl mx-auto">
+        <div className="rounded-2xl bg-pink-50 border border-pink-100 p-6 space-y-1 text-sm text-slate-700">
+          <p>
+            · IDS 및 로그 분석 스크립트 전체 코드:{' '}
+            <Link
+              href="https://github.com/bora120/log-ids"
+              target="_blank"
+              className="underline text-sky-700"
+            >
+              https://github.com/bora120/log-ids
+            </Link>{' '}
+          </p>
+          <p>
+            · 웹 서비스(Next.js) 전체 코드:{' '}
+            <Link
+              href="https://github.com/bora120/linux-portfolio"
+              target="_blank"
+              className="underline text-sky-700"
+            >
+              https://github.com/bora120/linux-portfolio
+            </Link>{' '}
+          </p>
+          <p>
+            · 동일 네트워크에서는 웹 서비스에{' '}
+            <Link
+              href="https://192.168.240.129"
+              target="_blank"
+              className="underline text-purple-700"
+            >
+              https://192.168.240.129
+            </Link>{' '}
+            로 접속
+          </p>
+        </div>
       </div>
     </section>
   )
